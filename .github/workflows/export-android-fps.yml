@@ -52,7 +52,7 @@ jobs:
         run: godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path fps-game --quit
       - name: Export debug APK
         env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: $HOME/.android/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/.android/debug.keystore
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
