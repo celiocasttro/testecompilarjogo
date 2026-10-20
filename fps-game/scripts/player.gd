@@ -94,9 +94,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.index == mobile_look_touch:
 			mobile_look_touch = -1
 	if event is InputEventScreenDrag and event.index == mobile_look_touch:
-		var delta := event.position - last_touch_position
-		rotate_y(-delta.x * MOUSE_SENSITIVITY * 1.7)
-		camera.rotate_x(-delta.y * MOUSE_SENSITIVITY * 1.7)
+		var drag_event := event as InputEventScreenDrag
+		var touch_delta: Vector2 = drag_event.position - last_touch_position
+		rotate_y(-touch_delta.x * MOUSE_SENSITIVITY * 1.7)
+		camera.rotate_x(-touch_delta.y * MOUSE_SENSITIVITY * 1.7)
 		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-82), deg_to_rad(82))
 		last_touch_position = event.position
 
