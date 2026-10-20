@@ -1,0 +1,25 @@
+name: Validate FPS Godot Project
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'fps-game/**'
+      - '.github/workflows/validate-fps.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download Godot
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
+          unzip -q godot.zip -d godot-bin
+          chmod +x godot-bin/Godot_v4.4.1-stable_linux.x86_64
+      - name: Import and parse project
+        run: godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path fps-game --quit
+      - name: Run project startup smoke test
+        run: timeout 15s godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --path fps-game --quit-after 5
