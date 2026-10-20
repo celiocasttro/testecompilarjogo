@@ -29,17 +29,17 @@ jobs:
         run: "$GODOT" --headless --editor --path fps-game --quit
       - name: Export iOS Xcode project
         run: |
-          mkdir -p build/ios
-          "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix
-          test -d build/ios/OperacaoFenix
+          mkdir -p fps-game/build/ios
+          "$GODOT" --headless --path fps-game --export-release "iOS" fps-game/build/ios/OperacaoFenix
+          test -d fps-game/build/ios/OperacaoFenix
       - name: Package Xcode project
         run: |
-          cd build/ios
+          cd fps-game/build/ios
           /usr/bin/zip -qr OperacaoFenix-iOS-Xcode.zip OperacaoFenix
       - name: Upload iOS Xcode project
         uses: actions/upload-artifact@v4
         with:
           name: operacao-fenix-ios-xcode-project
-          path: build/ios/OperacaoFenix-iOS-Xcode.zip
+          path: fps-game/build/ios/OperacaoFenix-iOS-Xcode.zip
           if-no-files-found: error
           retention-days: 14
