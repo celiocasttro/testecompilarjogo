@@ -1,0 +1,24 @@
+name: DesvieDosBlocos
+options:
+  bundleIdPrefix: com.dramovix
+settings:
+  base:
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  DesvieDosBlocos:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dramovix.desvieios
+        PRODUCT_NAME: "Desvie dos Blocos"
+        INFOPLIST_KEY_CFBundleDisplayName: "Desvie dos Blocos"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+        CODE_SIGNING_ALLOWED: NO
