@@ -19,7 +19,7 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate Xcode project
-        run: xcodegen generate --spec iOS/project.yml --project iOS/DesvieDosBlocos.xcodeproj
+        run: xcodegen generate --spec iOS/project.yml --project iOS
       - name: Build for iOS Simulator
         run: xcodebuild -project iOS/DesvieDosBlocos.xcodeproj -scheme DesvieDosBlocos -sdk iphonesimulator -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO
       - name: Package simulator app
