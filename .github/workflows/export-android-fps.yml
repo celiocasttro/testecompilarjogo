@@ -56,13 +56,13 @@ jobs:
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
-          mkdir -p build
+          mkdir -p fps-game/build
           godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --path fps-game --export-debug "Android" build/operacao-fenix-debug.apk
           test -s build/operacao-fenix-debug.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: operacao-fenix-android-debug-apk
-          path: build/operacao-fenix-debug.apk
+          path: fps-game/build/operacao-fenix-debug.apk
           if-no-files-found: error
           retention-days: 14
