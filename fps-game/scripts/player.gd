@@ -82,6 +82,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-82), deg_to_rad(82))
 	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
 		reload_weapon()
+	if Input.is_action_just_pressed("reload"):
+		reload_weapon()
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			if event.position.x > get_viewport().get_visible_rect().size.x * 0.55:
