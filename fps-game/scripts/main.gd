@@ -16,6 +16,7 @@ func _ready() -> void:
 	_build_world()
 	_build_hud()
 	player = PLAYER_SCENE.instantiate()
+	player.add_to_group("player")
 	add_child(player)
 	player.position = Vector3(0, 1.2, 7)
 	player.health_changed.connect(_on_health_changed)
@@ -156,6 +157,39 @@ func _build_hud() -> void:
 	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	help.add_theme_font_size_override("font_size", 14)
 	hud.add_child(help)
+	_build_mobile_controls()
+
+func _build_mobile_controls() -> void:
+	# Touch controls are visible on phones/tablets; desktop keyboard/mouse still works.
+	var size := get_viewport().get_visible_rect().size
+	_add_touch_button("◀", "move_left", Vector2(24, size.y - 138), Vector2(58, 58))
+	_add_touch_button("▶", "move_right", Vector2(150, size.y - 138), Vector2(58, 58))
+	_add_touch_button("▲", "move_forward", Vector2(87, size.y - 202), Vector2(58, 58))
+	_add_touch_button("▼", "move_back", Vector2(87, size.y - 74), Vector2(58, 58))
+	_add_touch_button("FIRE", "fire", Vector2(size.x - 142, size.y - 126), Vector2(112, 82))
+	_add_touch_button("RELOAD", "reload", Vector2(size.x - 142, size.y - 218), Vector2(112, 52))
+
+func _add_touch_button(label_text: String, action_name: String, pos: Vector2, button_size: Vector2) -> void:
+	var button := Button.new()
+	button.text = label_text
+	button.position = pos
+	button.size = button_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 18 if action_name != "fire" else 16)
+	button.add_theme_color_override("font_color", Color(0.92, 0.95, 0.89))
+	button.add_theme_stylebox_override("normal", _touch_style(Color(0.08, 0.12, 0.10, 0.72)))
+	button.add_theme_stylebox_override("pressed", _touch_style(Color(0.28, 0.36, 0.25, 0.92)))
+	hud.add_child(button)
+	button.button_down.connect(func(): Input.action_press(action_name))
+	button.button_up.connect(func(): Input.action_release(action_name))
+
+func _touch_style(color: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.border_color = Color(0.63, 0.72, 0.58, 0.85)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	return style
 
 func _on_health_changed(value: int) -> void:
 	health_label.text = "VIDA %d" % value
