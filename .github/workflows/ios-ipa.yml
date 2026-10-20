@@ -1,24 +1,15 @@
 name: Build Operacao Fenix unsigned iOS IPA
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - "fps-game/**"
-      - ".github/workflows/ios-ipa.yml"
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: read
 
 jobs:
   build-ios:
-    name: Build unsigned IPA
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 40
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install Godot and export templates
         shell: bash
@@ -34,7 +25,7 @@ jobs:
           cp templates-unpacked/templates/* "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
           echo "GODOT=$GODOT" >> "$GITHUB_ENV"
 
-      - name: Import Godot project
+      - name: Import project
         run: "$GODOT" --headless --editor --path fps-game --quit
 
       - name: Export unsigned IPA
@@ -44,7 +35,6 @@ jobs:
           mkdir -p fps-game/build/ios
           "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix.ipa
           test -s fps-game/build/ios/OperacaoFenix.ipa
-          file fps-game/build/ios/OperacaoFenix.ipa
           /usr/bin/unzip -t fps-game/build/ios/OperacaoFenix.ipa
 
       - name: Upload IPA
