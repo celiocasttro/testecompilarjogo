@@ -1,0 +1,34 @@
+name: Build iOS Simulator App
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'iOS/**'
+      - '.github/workflows/build-ios.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate --spec iOS/project.yml --project iOS/DesvieDosBlocos.xcodeproj
+      - name: Build for iOS Simulator
+        run: xcodebuild -project iOS/DesvieDosBlocos.xcodeproj -scheme DesvieDosBlocos -sdk iphonesimulator -configuration Debug -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+      - name: Package simulator app
+        run: |
+          cd build/Build/Products/Debug-iphonesimulator
+          zip -r "$GITHUB_WORKSPACE/DesvieDosBlocos-iOS-Simulator.zip" "Desvie dos Blocos.app"
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: desvie-dos-blocos-ios-simulator
+          path: DesvieDosBlocos-iOS-Simulator.zip
+          retention-days: 14
