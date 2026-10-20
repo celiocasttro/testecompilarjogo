@@ -1,0 +1,56 @@
+name: Build Operacao Fenix unsigned iOS IPA
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "fps-game/**"
+      - ".github/workflows/ios-ipa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    name: Build unsigned IPA
+    runs-on: macos-14
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip" -o godot.zip
+          unzip -q godot.zip -d godot-bin
+          GODOT="$PWD/godot-bin/Godot.app/Contents/MacOS/Godot"
+          chmod +x "$GODOT"
+          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o templates.tpz
+          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
+          unzip -q templates.tpz -d templates-unpacked
+          cp templates-unpacked/templates/* "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
+          echo "GODOT=$GODOT" >> "$GITHUB_ENV"
+
+      - name: Import Godot project
+        run: "$GODOT" --headless --editor --path fps-game --quit
+
+      - name: Export unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p fps-game/build/ios
+          "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix.ipa
+          test -s fps-game/build/ios/OperacaoFenix.ipa
+          file fps-game/build/ios/OperacaoFenix.ipa
+          /usr/bin/unzip -t fps-game/build/ios/OperacaoFenix.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: operacao-fenix-ios-unsigned-ipa
+          path: fps-game/build/ios/OperacaoFenix.ipa
+          if-no-files-found: error
+          retention-days: 14
