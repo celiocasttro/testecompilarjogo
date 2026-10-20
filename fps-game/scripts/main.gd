@@ -18,7 +18,7 @@ func _ready() -> void:
 	player = PLAYER_SCENE.instantiate()
 	player.add_to_group("player")
 	add_child(player)
-	player.position = Vector3(0, 1.2, 7)
+	player.position = Vector3(0, 0, 7)
 	player.health_changed.connect(_on_health_changed)
 	player.ammo_changed.connect(_on_ammo_changed)
 	player.enemy_hit.connect(_on_enemy_hit)
