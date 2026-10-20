@@ -11,6 +11,9 @@ permissions:
 jobs:
   export:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,10 +22,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-      - name: Install Android packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmdline-tools;latest"
+      - name: Install Android SDK packages
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmdline-tools;latest"
       - name: Install Godot and export templates
         run: |
           wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
@@ -32,12 +35,22 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           unzip -q templates.tpz -d templates-unpacked
           cp templates-unpacked/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
+      - name: Configure Android SDK in Godot
+        run: |
+          mkdir -p "$HOME/.config/godot"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
       - name: Import project
         run: godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --editor --path fps-game --quit
       - name: Export debug APK
         run: |
           mkdir -p build
           godot-bin/Godot_v4.4.1-stable_linux.x86_64 --headless --path fps-game --export-debug "Android" build/operacao-fenix-debug.apk
+          test -s build/operacao-fenix-debug.apk
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
