@@ -54,6 +54,19 @@ func _build_weapon_model() -> void:
 	weapon_pivot.add_child(barrel)
 	var grip := _weapon_box(Vector3(0.0, -0.13, -0.22), Vector3(0.09, 0.2, 0.13), Color(0.16, 0.15, 0.12))
 	weapon_pivot.add_child(grip)
+	var handguard := _weapon_box(Vector3(0.0, 0.0, -0.57), Vector3(0.18, 0.13, 0.25), Color(0.14, 0.16, 0.14))
+	weapon_pivot.add_child(handguard)
+	var stock := _weapon_box(Vector3(0.0, 0.015, -0.08), Vector3(0.13, 0.12, 0.25), Color(0.12, 0.14, 0.12))
+	weapon_pivot.add_child(stock)
+	var magazine := _weapon_box(Vector3(0.0, -0.17, -0.43), Vector3(0.095, 0.19, 0.14), Color(0.065, 0.075, 0.067))
+	magazine.rotation.x = deg_to_rad(-8)
+	weapon_pivot.add_child(magazine)
+	var top_rail := _weapon_box(Vector3(0.0, 0.105, -0.42), Vector3(0.07, 0.025, 0.39), Color(0.055, 0.065, 0.058))
+	weapon_pivot.add_child(top_rail)
+	var rear_sight := _weapon_box(Vector3(0.0, 0.14, -0.25), Vector3(0.06, 0.06, 0.045), Color(0.035, 0.04, 0.035))
+	weapon_pivot.add_child(rear_sight)
+	var front_sight := _weapon_box(Vector3(0.0, 0.09, -0.66), Vector3(0.035, 0.07, 0.035), Color(0.035, 0.04, 0.035))
+	weapon_pivot.add_child(front_sight)
 	muzzle_flash = OmniLight3D.new()
 	muzzle_flash.light_color = Color(1.0, 0.55, 0.16)
 	muzzle_flash.light_energy = 3.0
@@ -86,11 +99,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		reload_weapon()
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if event.position.x > get_viewport().get_visible_rect().size.x * 0.55:
+			var screen_width := get_viewport().get_visible_rect().size.x
+			if event.position.x > screen_width * 0.78:
+				shoot()
+			elif event.position.x > screen_width * 0.55:
 				mobile_look_touch = event.index
 				last_touch_position = event.position
-			elif event.position.x > get_viewport().get_visible_rect().size.x * 0.78:
-				shoot()
 		elif event.index == mobile_look_touch:
 			mobile_look_touch = -1
 	if event is InputEventScreenDrag and event.index == mobile_look_touch:
