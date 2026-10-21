@@ -1,45 +1,13 @@
-name: Export Operacao Fenix iOS project
+name: Operacao Fenix iOS Xcode Project (legacy)
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'fps-game/**'
-      - '.github/workflows/export-ios-fps.yml'
-  workflow_dispatch:
+  workflow_dispatch: {}
+
 permissions:
   contents: read
+
 jobs:
-  export-ios:
-    runs-on: macos-14
+  info:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Godot and export templates
-        run: |
-          curl -L --fail https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip -o godot.zip
-          unzip -q godot.zip -d godot-bin
-          GODOT="$PWD/godot-bin/Godot.app/Contents/MacOS/Godot"
-          chmod +x "$GODOT"
-          curl -L --fail https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -o templates.tpz
-          mkdir -p "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
-          unzip -q templates.tpz -d templates-unpacked
-          cp templates-unpacked/templates/* "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
-          echo "GODOT=$GODOT" >> "$GITHUB_ENV"
-      - name: Import project
-        run: "$GODOT" --headless --editor --path fps-game --quit
-      - name: Export iOS Xcode project
-        run: |
-          mkdir -p fps-game/build/ios
-          "$GODOT" --headless --path fps-game --export-release "iOS" fps-game/build/ios/OperacaoFenix
-          test -d fps-game/build/ios/OperacaoFenix
-      - name: Package Xcode project
-        run: |
-          cd fps-game/build/ios
-          /usr/bin/zip -qr OperacaoFenix-iOS-Xcode.zip OperacaoFenix
-      - name: Upload iOS Xcode project
-        uses: actions/upload-artifact@v4
-        with:
-          name: operacao-fenix-ios-xcode-project
-          path: fps-game/build/ios/OperacaoFenix-iOS-Xcode.zip
-          if-no-files-found: error
-          retention-days: 14
+      - name: Explain current iOS build workflow
+        run: echo "Use the Operacao Fenix iOS IPA workflow to build the unsigned IPA."
