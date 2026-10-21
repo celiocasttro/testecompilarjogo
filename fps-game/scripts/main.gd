@@ -35,6 +35,10 @@ func _build_world() -> void:
 	env.ambient_light_color = Color(0.55, 0.61, 0.67)
 	env.ambient_light_energy = 0.65
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.fog_enabled = true
+	env.fog_light_color = Color(0.36, 0.41, 0.39)
+	env.fog_density = 0.006
+	env.fog_sky_affect = 0.25
 	world_env.environment = env
 	add_child(world_env)
 
@@ -64,6 +68,28 @@ func _build_world() -> void:
 			continue
 		_make_box("Debris", Vector3(px, 0.18, pz), Vector3(randf_range(0.25, 0.8), 0.35, randf_range(0.25, 0.7)), Color(0.30, 0.31, 0.28))
 
+	# Additional modular battlefield props add scale, cover and a more layered silhouette.
+	_make_box("Watchtower left leg A", Vector3(-14.0, 1.5, -11.0), Vector3(0.22, 3.0, 0.22), Color(0.19, 0.22, 0.20))
+	_make_box("Watchtower left leg B", Vector3(-12.0, 1.5, -11.0), Vector3(0.22, 3.0, 0.22), Color(0.19, 0.22, 0.20))
+	_make_box("Watchtower right leg A", Vector3(-14.0, 1.5, -9.0), Vector3(0.22, 3.0, 0.22), Color(0.19, 0.22, 0.20))
+	_make_box("Watchtower right leg B", Vector3(-12.0, 1.5, -9.0), Vector3(0.22, 3.0, 0.22), Color(0.19, 0.22, 0.20))
+	_make_box("Watchtower platform", Vector3(-13.0, 2.8, -10.0), Vector3(2.6, 0.22, 2.6), Color(0.25, 0.28, 0.25))
+	_make_box("Watchtower roof", Vector3(-13.0, 4.0, -10.0), Vector3(3.0, 0.18, 3.0), Color(0.14, 0.17, 0.16))
+	_make_box("Watchtower rear rail", Vector3(-13.0, 3.35, -11.15), Vector3(2.2, 0.12, 0.12), Color(0.18, 0.20, 0.18))
+	_make_box("Watchtower side rail", Vector3(-14.1, 3.35, -10.0), Vector3(0.12, 0.12, 2.2), Color(0.18, 0.20, 0.18))
+	_make_box("Road barrier one", Vector3(3.5, 0.45, -14.0), Vector3(3.8, 0.9, 0.55), Color(0.38, 0.37, 0.31))
+	_make_box("Road barrier two", Vector3(4.8, 0.45, 12.5), Vector3(3.8, 0.9, 0.55), Color(0.38, 0.37, 0.31))
+	_make_box("Ammo crate", Vector3(-3.0, 0.55, 7.5), Vector3(1.0, 1.1, 0.9), Color(0.25, 0.29, 0.22))
+	_make_box("Ammo crate lid", Vector3(-3.0, 1.12, 7.5), Vector3(1.05, 0.08, 0.95), Color(0.17, 0.21, 0.16))
+	_make_box("Broken wall", Vector3(14.0, 0.85, -1.5), Vector3(0.65, 1.7, 4.8), Color(0.30, 0.31, 0.28))
+	_make_box("Broken wall cap", Vector3(14.0, 1.75, -2.2), Vector3(0.8, 0.18, 1.7), Color(0.24, 0.26, 0.23))
+	_make_cylinder("Rusty barrel", Vector3(5.0, 0.58, -5.0), 0.42, 1.16, Color(0.30, 0.25, 0.18))
+	_make_cylinder("Rusty barrel", Vector3(5.9, 0.58, -5.2), 0.42, 1.16, Color(0.27, 0.23, 0.17))
+	_make_cylinder("Supply drum", Vector3(-6.0, 0.48, 4.5), 0.34, 0.96, Color(0.22, 0.28, 0.23))
+	# Faded lane markings help orient the player in the combat zone.
+	for i in range(5):
+		_make_box("Faded road marking", Vector3(0.0, 0.012, -13.0 + float(i) * 2.2), Vector3(0.16, 0.025, 1.0), Color(0.54, 0.52, 0.42))
+
 func _make_box(label: String, pos: Vector3, size: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = label
@@ -80,6 +106,31 @@ func _make_box(label: String, pos: Vector3, size: Vector3, color: Color) -> Stat
 	var col := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
+	col.shape = shape
+	body.add_child(col)
+	add_child(body)
+	return body
+
+func _make_cylinder(label: String, pos: Vector3, radius: float, height: float, color: Color) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = label
+	body.position = pos
+	var mesh := MeshInstance3D.new()
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = radius
+	cylinder.bottom_radius = radius * 0.94
+	cylinder.height = height
+	mesh.mesh = cylinder
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = 0.28
+	mat.roughness = 0.78
+	mesh.material_override = mat
+	body.add_child(mesh)
+	var col := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = radius
+	shape.height = height
 	col.shape = shape
 	body.add_child(col)
 	add_child(body)
