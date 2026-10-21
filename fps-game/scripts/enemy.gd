@@ -58,6 +58,64 @@ func _build_enemy() -> void:
 	vest.material_override = vest_mat
 	add_child(vest)
 
+	# Helmet, shoulder armor, limbs and a compact rifle improve the hostile silhouette.
+	var helmet := MeshInstance3D.new()
+	var helmet_mesh := SphereMesh.new()
+	helmet_mesh.radius = 0.245
+	helmet_mesh.height = 0.30
+	helmet.mesh = helmet_mesh
+	helmet.position = Vector3(0, 1.98, 0)
+	var helmet_mat := StandardMaterial3D.new()
+	helmet_mat.albedo_color = Color(0.12, 0.16, 0.12)
+	helmet_mat.metallic = 0.18
+	helmet_mat.roughness = 0.72
+	helmet.material_override = helmet_mat
+	add_child(helmet)
+
+	var visor := MeshInstance3D.new()
+	var visor_mesh := BoxMesh.new()
+	visor_mesh.size = Vector3(0.29, 0.075, 0.055)
+	visor.mesh = visor_mesh
+	visor.position = Vector3(0, 1.80, -0.19)
+	var visor_mat := StandardMaterial3D.new()
+	visor_mat.albedo_color = Color(0.07, 0.10, 0.09)
+	visor_mat.metallic = 0.3
+	visor_mat.roughness = 0.28
+	visor.material_override = visor_mat
+	add_child(visor)
+
+	for side in [-1.0, 1.0]:
+		var arm := MeshInstance3D.new()
+		var arm_mesh := CapsuleMesh.new()
+		arm_mesh.radius = 0.13
+		arm_mesh.height = 0.62
+		arm.mesh = arm_mesh
+		arm.position = Vector3(side * 0.43, 0.96, -0.015)
+		arm.rotation.z = deg_to_rad(side * -9.0)
+		arm.material_override = mat
+		add_child(arm)
+
+		var leg := MeshInstance3D.new()
+		var leg_mesh := CapsuleMesh.new()
+		leg_mesh.radius = 0.145
+		leg_mesh.height = 0.72
+		leg.mesh = leg_mesh
+		leg.position = Vector3(side * 0.17, 0.36, 0.015)
+		leg.material_override = mat
+		add_child(leg)
+
+	var rifle := MeshInstance3D.new()
+	var rifle_mesh := BoxMesh.new()
+	rifle_mesh.size = Vector3(0.09, 0.10, 0.72)
+	rifle.mesh = rifle_mesh
+	rifle.position = Vector3(0.28, 1.10, -0.30)
+	var rifle_mat := StandardMaterial3D.new()
+	rifle_mat.albedo_color = Color(0.055, 0.065, 0.058)
+	rifle_mat.metallic = 0.52
+	rifle_mat.roughness = 0.48
+	rifle.material_override = rifle_mat
+	add_child(rifle)
+
 func _physics_process(delta: float) -> void:
 	if not alive:
 		return
