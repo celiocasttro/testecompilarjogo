@@ -1,15 +1,24 @@
-name: Build Operacao Fenix unsigned iOS IPA
-on: [push, workflow_dispatch]
+name: Operacao Fenix iOS IPA
+'on':
+  push:
+    branches:
+      - main
+    paths:
+      - 'fps-game/**'
+      - '.github/workflows/ios-ipa.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-ios:
-    runs-on: macos-latest
-    timeout-minutes: 40
+  build-ios-ipa:
+    name: Build unsigned iOS IPA
+    runs-on: macos-14
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Install Godot and export templates
         shell: bash
@@ -25,22 +34,42 @@ jobs:
           cp templates-unpacked/templates/* "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
           echo "GODOT=$GODOT" >> "$GITHUB_ENV"
 
-      - name: Import project
+      - name: Import Godot project
         run: "$GODOT" --headless --editor --path fps-game --quit
 
-      - name: Export unsigned IPA
+      - name: Export iOS Xcode project
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p fps-game/build/ios
-          "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix.ipa
-          test -s fps-game/build/ios/OperacaoFenix.ipa
-          /usr/bin/unzip -t fps-game/build/ios/OperacaoFenix.ipa
+          "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix
+          test -d fps-game/build/ios/OperacaoFenix
 
-      - name: Upload IPA
+      - name: Build unsigned iOS app
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$(find fps-game/build/ios/OperacaoFenix -maxdepth 2 -name '*.xcodeproj' -print -quit)"
+          if [ -z "$PROJECT" ]; then
+            echo "Godot did not create an Xcode project."
+            find fps-game/build/ios -maxdepth 4 -print
+            exit 1
+          fi
+          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -derivedDataPath "$PWD/ios-derived" CODE_SIGNING_ALLOWED=NO build
+          APP="$(find ios-derived/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -print -quit)"
+          test -n "$APP"
+          mkdir -p ipa-stage/Payload
+          cp -R "$APP" ipa-stage/Payload/
+          cd ipa-stage
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/fps-game/build/ios/OperacaoFenix-unsigned.ipa" Payload
+          cd "$GITHUB_WORKSPACE"
+          test -s fps-game/build/ios/OperacaoFenix-unsigned.ipa
+          /usr/bin/unzip -t fps-game/build/ios/OperacaoFenix-unsigned.ipa
+
+      - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
         with:
           name: operacao-fenix-ios-unsigned-ipa
-          path: fps-game/build/ios/OperacaoFenix.ipa
+          path: fps-game/build/ios/OperacaoFenix-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
