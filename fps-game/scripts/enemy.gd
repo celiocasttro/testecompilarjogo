@@ -9,6 +9,7 @@ var think_timer := 0.0
 var target: Node3D
 var body_mesh: MeshInstance3D
 var health_bar: MeshInstance3D
+var muzzle_light: OmniLight3D
 var alive := true
 var home_position := Vector3.ZERO
 
@@ -115,6 +116,13 @@ func _build_enemy() -> void:
 	rifle_mat.roughness = 0.48
 	rifle.material_override = rifle_mat
 	add_child(rifle)
+	muzzle_light = OmniLight3D.new()
+	muzzle_light.light_color = Color(1.0, 0.42, 0.12)
+	muzzle_light.light_energy = 2.2
+	muzzle_light.omni_range = 2.0
+	muzzle_light.position = Vector3(0.28, 1.1, -0.72)
+	muzzle_light.visible = false
+	add_child(muzzle_light)
 
 func _physics_process(delta: float) -> void:
 	if not alive:
@@ -128,22 +136,45 @@ func _physics_process(delta: float) -> void:
 	if distance < 17.0:
 		var flat_target := Vector3(target.global_position.x, global_position.y, target.global_position.z)
 		look_at(flat_target, Vector3.UP)
-		if distance > 5.0:
+		if distance > 7.0:
 			var dir := (flat_target - global_position).normalized()
 			velocity.x = dir.x * speed
 			velocity.z = dir.z * speed
 		else:
 			velocity.x = 0
 			velocity.z = 0
-			if attack_timer <= 0.0 and target.has_method("take_damage"):
-				target.take_damage(8)
-				attack_timer = 1.25
+			if attack_timer <= 0.0 and target.has_method("take_damage") and _has_line_of_sight():
+				attack_timer = 1.55
+				_fire_at_player()
 	else:
 		velocity.x = 0
 		velocity.z = 0
 	if not is_on_floor():
 		velocity.y -= 18.0 * delta
 	move_and_slide()
+
+func _has_line_of_sight() -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	var origin := global_position + Vector3(0, 1.35, 0)
+	var destination := target.global_position + Vector3(0, 1.25, 0)
+	var query := PhysicsRayQueryParameters3D.create(origin, destination)
+	query.exclude = [self]
+	var result := get_world_3d().direct_space_state.intersect_ray(query)
+	return result.is_empty() or result.get("collider") == target
+
+func _fire_at_player() -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	muzzle_light.visible = true
+	var flash_timer := get_tree().create_timer(0.07)
+	flash_timer.timeout.connect(func():
+		if is_instance_valid(muzzle_light):
+			muzzle_light.visible = false
+	)
+	# Damage is applied only when the ray has a clear line of sight.
+	if _has_line_of_sight():
+		target.take_damage(6)
 
 func take_damage(amount: int) -> void:
 	if not alive:
