@@ -1,12 +1,5 @@
 name: Operacao Fenix iOS IPA
-'on':
-  push:
-    branches:
-      - main
-    paths:
-      - 'fps-game/**'
-      - '.github/workflows/ios-ipa.yml'
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions:
   contents: read
@@ -27,7 +20,7 @@ jobs:
           curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip" -o godot.zip
           unzip -q godot.zip -d godot-bin
           GODOT="$PWD/godot-bin/Godot.app/Contents/MacOS/Godot"
-          chmod +x "$GODOT"
+          test -x "$GODOT" || chmod +x "$GODOT"
           curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o templates.tpz
           mkdir -p "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
           unzip -q templates.tpz -d templates-unpacked
@@ -35,32 +28,33 @@ jobs:
           echo "GODOT=$GODOT" >> "$GITHUB_ENV"
 
       - name: Import Godot project
-        run: "$GODOT" --headless --editor --path fps-game --quit
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT" --headless --editor --path fps-game --quit
 
       - name: Export iOS Xcode project
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p fps-game/build/ios
-          "$GODOT" --headless --path fps-game --export-release "iOS" build/ios/OperacaoFenix
-          test -d fps-game/build/ios/OperacaoFenix
+          "$GODOT" --headless --path fps-game --export-release "iOS" "$PWD/fps-game/build/ios/OperacaoFenix"
+          find fps-game/build/ios -maxdepth 4 -print
+          PROJECT="$(find "$PWD/fps-game/build/ios" -maxdepth 4 -name '*.xcodeproj' -print -quit)"
+          test -n "$PROJECT"
 
-      - name: Build unsigned iOS app
+      - name: Build and package unsigned iOS IPA
         shell: bash
         run: |
           set -euo pipefail
-          PROJECT="$(find fps-game/build/ios/OperacaoFenix -maxdepth 2 -name '*.xcodeproj' -print -quit)"
-          if [ -z "$PROJECT" ]; then
-            echo "Godot did not create an Xcode project."
-            find fps-game/build/ios -maxdepth 4 -print
-            exit 1
-          fi
+          PROJECT="$(find "$PWD/fps-game/build/ios" -maxdepth 4 -name '*.xcodeproj' -print -quit)"
+          test -n "$PROJECT"
           xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -derivedDataPath "$PWD/ios-derived" CODE_SIGNING_ALLOWED=NO build
-          APP="$(find ios-derived/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -print -quit)"
+          APP="$(find "$PWD/ios-derived/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' -print -quit)"
           test -n "$APP"
-          mkdir -p ipa-stage/Payload
-          cp -R "$APP" ipa-stage/Payload/
-          cd ipa-stage
+          mkdir -p "$PWD/ipa-stage/Payload"
+          cp -R "$APP" "$PWD/ipa-stage/Payload/"
+          cd "$PWD/ipa-stage"
           /usr/bin/zip -qry "$GITHUB_WORKSPACE/fps-game/build/ios/OperacaoFenix-unsigned.ipa" Payload
           cd "$GITHUB_WORKSPACE"
           test -s fps-game/build/ios/OperacaoFenix-unsigned.ipa
