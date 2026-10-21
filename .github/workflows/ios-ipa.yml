@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           PROJECT="$(find "$PWD/fps-game/build/ios" -maxdepth 4 -name '*.xcodeproj' -print -quit)"
           test -n "$PROJECT"
-          xcodebuild -project "$PROJECT" -configuration Release -sdk iphoneos -derivedDataPath "$PWD/ios-derived" CODE_SIGNING_ALLOWED=NO build
+          xcodebuild -project "$PROJECT" -scheme OperacaoFenix -configuration Release -sdk iphoneos -destination "generic/platform=iOS" -derivedDataPath "$PWD/ios-derived" CODE_SIGNING_ALLOWED=NO build
           APP="$(find "$PWD/ios-derived/Build/Products/Release-iphoneos" -maxdepth 1 -name '*.app' -print -quit)"
           test -n "$APP"
           mkdir -p "$PWD/ipa-stage/Payload"
